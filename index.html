@@ -831,10 +831,25 @@ function authSeg(t,el){
 }
 function authErr(m){const e=document.getElementById('ae');e.textContent=m;e.style.display='block';}
 function doLogin(){
-  const em=document.getElementById('lEm').value.trim(),pw=document.getElementById('lPw').value;
-  if(!em||!pw)return authErr('入力してください');
-  const u=users[em];if(!u||u.pass!==pw)return authErr('メールアドレスまたはパスワードが違います');
-  cu={email:em,...u};sv('sess',em);launch();
+   const id=document.getElementById('lId').value.trim();
+  const pw=document.getElementById('lPw').value;
+
+  if(!id||!pw) return authErr('入力してください');
+
+  // IDからユーザーを探す
+  const u=Object.values(users).find(x=>x.uid===id);
+
+  if(!u || u.pass!==pw){
+    return authErr('IDまたはパスワードが違います');
+  }
+
+  // メールを取得
+  const em=Object.keys(users).find(k=>users[k]===u);
+
+  cu={email:em,...u};
+  sv('sess',em);
+
+  launch();
 }
 function doReg(){
   const nm=document.getElementById('rNm').value.trim();
@@ -1441,6 +1456,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
