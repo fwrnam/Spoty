@@ -546,7 +546,7 @@ button{cursor:pointer;font-family:inherit;}
 
   
 
-  window.db = db;
+ 
 </script>
 </head>
 <body>
@@ -1395,12 +1395,11 @@ function fn(n){return n>=1000?(n/1000).toFixed(1)+'k':n||0;}
 function sc(s){let h=0;for(const c of(s||''))h=c.charCodeAt(0)+((h<<5)-h);return`hsl(${Math.abs(h)%360},55%,36%)`;}
 let toastT;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2500);}
+<div id="feed"></div>
 
-init();
-</script>
-  <script type="module">
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAr674Ds7ns-iKjTx4UPaN09hlo_LNu2rI",
@@ -1417,10 +1416,9 @@ init();
 
   const feed = document.getElementById("feed");
 
-  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+  const q = query(collection(db, "posts"));
 
   onSnapshot(q, (snapshot) => {
-    if (!feed) return;
     feed.innerHTML = "";
     snapshot.forEach((doc) => {
       const data = doc.data();
@@ -1438,44 +1436,7 @@ init();
     });
   });
 </script>
-  <div id="feed"></div>
-  <div id="feed"></div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAr674Ds7ns-iKjTx4UPaN09hlo_LNu2rI",
-    authDomain: "spoty-64d44.firebaseapp.com",
-    projectId: "spoty-64d44",
-    storageBucket: "spoty-64d44.firebasestorage.app",
-    messagingSenderId: "337557449917",
-    appId: "1:337557449917:web:40d383e007402e4d469bd4",
-    measurementId: "G-PF7NFMQX3S"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const feed = document.getElementById("feed");
-
-  const snap = await getDocs(collection(db, "posts"));
-
-  snap.forEach((doc) => {
-    const data = doc.data();
-
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <h3>${data.spotName}</h3>
-      <p>${data.region}</p>
-    `;
-    feed.appendChild(div);
-  });
-</script>
-</body>
-
-</html>
 
 
 
