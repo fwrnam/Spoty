@@ -529,6 +529,26 @@ button{cursor:pointer;font-family:inherit;}
 }
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
+  <!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAr674Ds7ns-iKjTx4UPaN09hlo_LNu2rI",
+    authDomain: "spoty-64d44.firebaseapp.com",
+    projectId: "spoty-64d44",
+    storageBucket: "spoty-64d44.firebasestorage.app",
+    messagingSenderId: "337557449917",
+    appId: "1:337557449917:web:40d383e007402e4d469bd4",
+    measurementId: "G-PF7NFMQX3S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.db = db;
+</script>
 </head>
 <body>
 
@@ -1380,4 +1400,5 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 init();
 </script>
 </body>
+
 </html>
