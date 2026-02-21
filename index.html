@@ -837,24 +837,38 @@ function doLogin(){
   cu={email:em,...u};sv('sess',em);launch();
 }
 function doReg(){
-  const nm=document.getElementById('rNm').value.trim(),uid=document.getElementById('rId').value.trim();
-  const em=document.getElementById('rEm').value.trim(),pw=document.getElementById('rPw').value;
-  if(!nm||!uid||!em||!pw)return authErr('すべて入力してください');
-  if(pw.length<8)return authErr('パスワードは8文字以上');
-  if(users[em])return authErr('このメールはすでに登録されています');
-  if(Object.values(users).some(u=>u.uid===uid))return authErr('このIDはすでに使われています');
-  users[em]={name:nm,uid,pass:pw,av:null,following:[],createdAt:Date.now()};
-  sv('users',users);cu={email:em,...users[em]};sv('sess',em);launch();
-}
-function doLogout(){sv('sess',null);cu=null;document.getElementById('app').style.display='none';document.getElementById('authWrap').style.display='flex';}
-function launch(){
-  document.getElementById('authWrap').style.display='none';
-  document.getElementById('app').style.display='flex';
-  updTopAv();renderVert();renderMypage();
-}
-function updTopAv(){
-  const el=document.getElementById('topAv');if(!cu)return;
-  el.innerHTML=cu.av?`<img src="${cu.av}">`:(cu.name||'?').charAt(0).toUpperCase();
+  const nm=document.getElementById('rNm').value.trim();
+  const uid=document.getElementById('rId').value.trim();
+  const em=document.getElementById('rEm').value.trim();
+  const pw=document.getElementById('rPw').value;
+
+  if(!nm||!uid||!em||!pw) return authErr('すべて入力してください');
+
+  if(pw.length<8) return authErr('パスワードは8文字以上');
+
+  // ✅ メール重複チェック
+  if(users[em]) return authErr('このメールはすでに登録されています');
+
+  // ✅ ID重複チェック
+  if(Object.values(users).some(u=>u.uid===uid)){
+    return authErr('このIDはすでに使われています');
+  }
+
+  // 登録
+  users[em]={
+    name:nm,
+    uid,
+    pass:pw,
+    av:null,
+    following:[],
+    createdAt:Date.now()
+  };
+
+  sv('users',users);
+  cu={email:em,...users[em]};
+  sv('sess',em);
+
+  launch();
 }
 
 /* ══ SCREEN SWITCHING ══ */
@@ -1427,6 +1441,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
