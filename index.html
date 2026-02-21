@@ -544,8 +544,7 @@ button{cursor:pointer;font-family:inherit;}
     measurementId: "G-PF7NFMQX3S"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  
 
   window.db = db;
 </script>
@@ -1440,8 +1439,43 @@ init();
   });
 </script>
   <div id="feed"></div>
+  <div id="feed"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAr674Ds7ns-iKjTx4UPaN09hlo_LNu2rI",
+    authDomain: "spoty-64d44.firebaseapp.com",
+    projectId: "spoty-64d44",
+    storageBucket: "spoty-64d44.firebasestorage.app",
+    messagingSenderId: "337557449917",
+    appId: "1:337557449917:web:40d383e007402e4d469bd4",
+    measurementId: "G-PF7NFMQX3S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const feed = document.getElementById("feed");
+
+  const snap = await getDocs(collection(db, "posts"));
+
+  snap.forEach((doc) => {
+    const data = doc.data();
+
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <h3>${data.spotName}</h3>
+      <p>${data.region}</p>
+    `;
+    feed.appendChild(div);
+  });
+</script>
 </body>
 
 </html>
+
 
 
