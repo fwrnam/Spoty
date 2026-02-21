@@ -1399,6 +1399,47 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 
 init();
 </script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAr674Ds7ns-iKjTx4UPaN09hlo_LNu2rI",
+    authDomain: "spoty-64d44.firebaseapp.com",
+    projectId: "spoty-64d44",
+    storageBucket: "spoty-64d44.firebasestorage.app",
+    messagingSenderId: "337557449917",
+    appId: "1:337557449917:web:40d383e007402e4d469bd4",
+    measurementId: "G-PF7NFMQX3S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const feed = document.getElementById("feed");
+
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+
+  onSnapshot(q, (snapshot) => {
+    if (!feed) return;
+    feed.innerHTML = "";
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      const div = document.createElement("div");
+      div.style.padding = "10px";
+      div.style.borderBottom = "1px solid #ddd";
+
+      div.innerHTML = `
+        <strong>${data.spotName}</strong>
+        <p>${data.region}</p>
+      `;
+
+      feed.appendChild(div);
+    });
+  });
+</script>
 </body>
 
 </html>
+
