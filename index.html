@@ -530,7 +530,7 @@ button{cursor:pointer;font-family:inherit;}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
   <!-- Firebase -->
-<script type="module">
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -547,6 +547,23 @@ button{cursor:pointer;font-family:inherit;}
   
 
  
+</script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAr674Ds7ns-iKjTx4UPaN09hlo_LNu2rI",
+    authDomain: "spoty-64d44.firebaseapp.com",
+    projectId: "spoty-64d44",
+    storageBucket: "spoty-64d44.firebasestorage.app",
+    messagingSenderId: "337557449917",
+    appId: "1:337557449917:web:40d383e007402e4d469bd4",
+    measurementId: "G-PF7NFMQX3S"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  window.db = firebase.firestore();
 </script>
 </head>
 <body>
@@ -798,6 +815,29 @@ function init(){
   if(sess&&users[sess]){cu={email:sess,...users[sess]};launch();}
   sv('posts',posts);sv('users',users);
   initPhotoSlots();
+    // ===== Firestore: 全員の投稿をリアルタイム同期 =====
+  window.db.collection("posts")
+    .orderBy("createdAt", "desc")
+    .onSnapshot((snap) => {
+      const ALLOW = new Set([
+        "東京都","神奈川県","千葉県"
+        "福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県"
+      ]);
+
+      posts = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => ALLOW.has(p.pref));
+
+      // 画面を更新
+      if (typeof renderVert === "function") renderVert();
+      if (typeof renderGrid === "function") renderGrid();
+      if (typeof renderMypage === "function") renderMypage();
+
+      // ローカルにも保存（オフライン時の表示用）
+      sv('posts', posts);
+    }, (err) => {
+      console.error("Firestore onSnapshot error:", err);
+    });
 }
 
 /* ══ AUTH ══ */
@@ -1249,7 +1289,7 @@ function submitPost(){
     clr:clrs[Math.floor(Math.random()*clrs.length)],
     createdAt:Date.now(),lat:rLat(pref),lng:rLng(pref)
   };
-  posts.unshift(np);sv('posts',posts);
+  window.db.collection("posts").add(np);
   // reset
   ['pTitle','pPref','pDsc','pTgs'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pCat').value='';
@@ -1395,7 +1435,7 @@ function fn(n){return n>=1000?(n/1000).toFixed(1)+'k':n||0;}
 function sc(s){let h=0;for(const c of(s||''))h=c.charCodeAt(0)+((h<<5)-h);return`hsl(${Math.abs(h)%360},55%,36%)`;}
 let toastT;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2500);}
-<div id="feed"></div>
+
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1436,6 +1476,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
     });
   });
 </script>
+
 
 
 
