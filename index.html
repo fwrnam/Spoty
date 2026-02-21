@@ -551,27 +551,47 @@ button{cursor:pointer;font-family:inherit;}
 <body>
 
 <!-- ════ AUTH ════ -->
-<div id="authWrap">
-  <div class="auth-logo-block">
-    <span class="auth-pin">📍</span>
-    <div class="auth-wordmark">Spoty</div>
-    <div class="auth-tagline">旅、もっと自由に。あなただけのスポットを。</div>
-  </div>
-  <div class="auth-card">
-    <div class="auth-segs">
-     <div id="loginF">
-  <div class="fg">
-    <label class="fl">ユーザーID</label>
-    <input class="fi" id="lId" type="text" placeholder="例：tabi_taro" inputmode="text">
+<div class="auth-card">
+
+  <div class="auth-segs">
+    <button class="auth-seg on" onclick="authSeg('login',this)">ログイン</button>
+    <button class="auth-seg" onclick="authSeg('reg',this)">新規登録</button>
   </div>
 
-  <div class="fg">
-    <label class="fl">パスワード</label>
-    <input class="fi" id="lPw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+  <div id="ae" class="ae"></div>
+
+  <!-- ログイン -->
+  <div id="loginF">
+    <div class="fg">
+      <label class="fl">ユーザーID</label>
+      <input class="fi" id="lId" type="text" placeholder="例：tabi_taro" inputmode="text">
+    </div>
+
+    <div class="fg">
+      <label class="fl">パスワード</label>
+      <input class="fi" id="lPw" type="password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <button class="auth-btn" onclick="doLogin()">ログイン →</button>
+    <div class="demo-note">デモ用: ID test_user / password123</div>
   </div>
 
-  <button class="auth-btn" onclick="doLogin()">ログイン →</button>
-  <div class="demo-note">デモ用: ID test_user / password123</div>
+  <!-- 新規登録 -->
+  <div id="regF" style="display:none;">
+    <div class="fg"><label class="fl">ニックネーム</label><input class="fi" id="rNm" type="text" placeholder="例：旅好き太郎"></div>
+    <div class="fg"><label class="fl">ユーザーID（英数字・_）</label>
+      <input class="fi" id="rId" type="text" placeholder="tabi_taro"
+        oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()">
+    </div>
+    <div class="fg"><label class="fl">メールアドレス</label><input class="fi" id="rEm" type="email" placeholder="example@email.com" inputmode="email"></div>
+    <div class="fg"><label class="fl">パスワード（8文字以上）</label>
+      <input class="fi" id="rPw" type="password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')doReg()">
+    </div>
+    <button class="auth-btn" onclick="doReg()">アカウント作成 →</button>
+  </div>
+
 </div>
 
 <!-- ════ APP ════ -->
@@ -1459,6 +1479,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
