@@ -1340,10 +1340,12 @@ function hashColor(s){let h=0;for(const c of s)h=(h<<5)-h+c.charCodeAt(0);return
 
 function submitPost(){
   const title=document.getElementById('pTitle').value.trim();
-  const pref = normPref(document.getElementById('pPref').value);
- const cats=[...document.querySelectorAll('.catChk:checked')].map(x=>x.value);
+  const pref=document.getElementById('pPref').value.trim();
+  const cat=document.getElementById('pCat').value;
+  const desc=document.getElementById('pDsc').value.trim();
 
-if(!title||!pref||!cats.length||!desc) return toast('⚠️ 必須項目を入力してください');
+  if(!title||!pref||!cat||!desc)
+    return toast('⚠️ 必須項目を入力してください');
   const rawTags=document.getElementById('pTgs').value.trim().split(/[\s　,]+/).filter(Boolean).map(t=>t.replace(/^#/,''));
   const ps=pref.replace(/[都道府県]/,'');if(!rawTags.includes(ps))rawTags.push(ps);
   const np={
@@ -1544,6 +1546,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
