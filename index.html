@@ -1338,7 +1338,7 @@ function selectMusic(id){
 function clearMusic(e){if(e)e.stopPropagation();selMusicObj=null;document.getElementById('mpTrack').textContent='曲を選んで投稿に雰囲気を';document.getElementById('mpClear').style.display='none';}
 function hashColor(s){let h=0;for(const c of s)h=(h<<5)-h+c.charCodeAt(0);return Math.abs(h)%360;}
 
-function submitPost(){
+unction submitPost(){
   if(!cu) return toast('ログインが必要です');
 
   // どのIDが無いか即わかるチェック関数
@@ -1354,24 +1354,22 @@ function submitPost(){
   const val = (id) => el(id).value;
 
   const title = val('pTitle').trim();
-  const pref  = val('pPref').trim();
 
-  // pCat が複数選択に変わってる可能性があるので両対応
-  let catEl = document.getElementById('pCat') || document.getElementById('pCats');
-  if(!catEl){
-    console.error('❌ missing pCat / pCats');
-    toast('❌ カテゴリのIDが見つからない（pCat / pCats）');
-    return;
-  }
+  // ✅ 都道府県を正規化（"東京"→"東京都" など）
+  const pref = normPref(val('pPref').trim());
 
-  const cat = (catEl.multiple)
-    ? Array.from(catEl.selectedOptions).map(o=>o.value).filter(Boolean)
-    : catEl.value;
+  // ✅ チェックボックスからカテゴリ複数取得
+  const cats = Array.from(document.querySelectorAll('.catChk:checked'))
+    .map(x => x.value)
+    .filter(Boolean);
+
+  // 互換用（旧表示が p.cat 前提なので先頭を cat に）
+  const cat = cats[0] || '';
 
   const desc = val('pDsc').trim();
 
-  const catOk = Array.isArray(cat) ? cat.length>0 : !!cat;
-  if(!title || !pref || !catOk || !desc){
+  // ✅ 必須チェック
+  if(!title || !pref || cats.length===0 || !desc){
     return toast('⚠️ 必須項目を入力してください');
   }
 
@@ -1391,7 +1389,8 @@ function submitPost(){
 
     title,
     pref,
-    cat,
+    cat,   // 先頭1個（互換）
+    cats,  // ✅ 複数カテゴリ（新仕様）
 
     year:  +val('pYr'),
     month: +val('pMo'),
@@ -1421,13 +1420,11 @@ function submitPost(){
 
   window.db.collection("posts").add(np).then(()=>{
 
+    // reset
     ['pTitle','pPref','pDsc','pTgs'].forEach(id=>el(id).value='');
 
-    if(catEl.multiple){
-      Array.from(catEl.options).forEach(o=>o.selected=false);
-    }else{
-      catEl.value='';
-    }
+    // ✅ カテゴリ（チェック）を全部OFF
+    document.querySelectorAll('.catChk').forEach(x => x.checked = false);
 
     ['bLo','bHi','bPh'].forEach(id=>el(id).checked=false);
 
@@ -1579,7 +1576,13 @@ function rLat(p){const m={'東京都':35.68,'神奈川県':35.45,'熊本県':32.
 function rLng(p){const m={'東京都':139.7,'神奈川県':139.6,'熊本県':131.0,'京都府':135.7,'大阪府':135.5};return(m[p]||136.0)+Math.random()*0.4-0.2;}
 function ce(c){return c?.includes('空')?'🟢':c?.includes('混')?'🔴':'🟡';}
 function fn(n){return n>=1000?(n/1000).toFixed(1)+'k':n||0;}
-
+// ✅ catが「文字列」でも「配列」でも扱えるようにする
+function catMain(cat){
+  return Array.isArray(cat) ? (cat[0] || '') : (cat || '');
+}
+function catText(cat){
+  return Array.isArray(cat) ? cat.filter(Boolean).join(' / ') : (cat || '');
+}
 /* ✅ ここに追加（pref正規化） */
 function normPref(pref){
   const p=(pref||'').trim();
@@ -1616,6 +1619,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
