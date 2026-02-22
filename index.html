@@ -1338,7 +1338,7 @@ function selectMusic(id){
 function clearMusic(e){if(e)e.stopPropagation();selMusicObj=null;document.getElementById('mpTrack').textContent='曲を選んで投稿に雰囲気を';document.getElementById('mpClear').style.display='none';}
 function hashColor(s){let h=0;for(const c of s)h=(h<<5)-h+c.charCodeAt(0);return Math.abs(h)%360;}
 
-unction submitPost(){
+function submitPost(){
   if(!cu) return toast('ログインが必要です');
 
   // どのIDが無いか即わかるチェック関数
@@ -1619,6 +1619,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
