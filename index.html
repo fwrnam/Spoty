@@ -704,10 +704,22 @@ button{cursor:pointer;font-family:inherit;}
       <div class="fg"><label class="fl">スポット名 *</label><input class="fi" id="pTitle" type="text" placeholder="例：草千里ヶ浜"></div>
       <div class="frow">
         <div class="fg"><label class="fl">都道府県・地域 *</label><input class="fi" id="pPref" type="text" placeholder="例：熊本県"></div>
-        <div class="fg"><label class="fl">カテゴリ *</label>
-          <select class="fsel" id="pCat"><option value="">選択</option><option value="自然">🌿 自然</option><option value="カフェ">☕ カフェ</option><option value="グルメ">🍜 グルメ</option><option value="温泉">♨️ 温泉</option><option value="絶景">🌅 絶景</option><option value="観光">🏯 観光</option><option value="夜景">🌙 夜景</option><option value="体験">🎭 体験</option><option value="穴場">🔮 穴場</option><option value="ドライブ">🚗 ドライブ</option><option value="その他">📌 その他</option></select>
-        </div>
-      </div>
+        <div class="fg">
+  <label class="fl">カテゴリ（複数OK） *</label>
+  <div class="badge-picks" id="catPicks">
+    <label class="bpick"><input type="checkbox" class="catChk" value="自然"> 🌿 自然</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="カフェ"> ☕ カフェ</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="グルメ"> 🍜 グルメ</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="温泉"> ♨️ 温泉</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="絶景"> 🌅 絶景</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="観光"> 🏯 観光</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="夜景"> 🌙 夜景</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="体験"> 🎭 体験</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="穴場"> 🔮 穴場</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="ドライブ"> 🚗 ドライブ</label>
+    <label class="bpick"><input type="checkbox" class="catChk" value="その他"> 📌 その他</label>
+  </div>
+</div>
       <div class="frow3">
         <div class="fg"><label class="fl">訪問年 *</label><select class="fsel" id="pYr"><option value="2025">2025年</option><option value="2024">2024年</option><option value="2023">2023年</option><option value="2022">2022年</option></select></div>
         <div class="fg"><label class="fl">月 *</label><select class="fsel" id="pMo"><option value="1">1月</option><option value="2">2月</option><option value="3">3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select></div>
@@ -1300,9 +1312,9 @@ function hashColor(s){let h=0;for(const c of s)h=(h<<5)-h+c.charCodeAt(0);return
 function submitPost(){
   const title=document.getElementById('pTitle').value.trim();
   const pref = normPref(document.getElementById('pPref').value);
-  const cat=document.getElementById('pCat').value;
-  const desc=document.getElementById('pDsc').value.trim();
-  if(!title||!pref||!cat||!desc)return toast('⚠️ 必須項目を入力してください');
+ const cats=[...document.querySelectorAll('.catChk:checked')].map(x=>x.value);
+
+if(!title||!pref||!cats.length||!desc) return toast('⚠️ 必須項目を入力してください');
   const rawTags=document.getElementById('pTgs').value.trim().split(/[\s　,]+/).filter(Boolean).map(t=>t.replace(/^#/,''));
   const ps=pref.replace(/[都道府県]/,'');if(!rawTags.includes(ps))rawTags.push(ps);
   const np={
@@ -1496,6 +1508,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
