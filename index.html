@@ -1339,57 +1339,115 @@ function clearMusic(e){if(e)e.stopPropagation();selMusicObj=null;document.getEle
 function hashColor(s){let h=0;for(const c of s)h=(h<<5)-h+c.charCodeAt(0);return Math.abs(h)%360;}
 
 function submitPost(){
-  const title=document.getElementById('pTitle').value.trim();
-  const pref=document.getElementById('pPref').value.trim();
-  const cat=document.getElementById('pCat').value;
-  const desc=document.getElementById('pDsc').value.trim();
+  if(!cu) return toast('ログインが必要です');
 
-  if(!title||!pref||!cat||!desc)
-    return toast('⚠️ 必須項目を入力してください');
-  const rawTags=document.getElementById('pTgs').value.trim().split(/[\s　,]+/).filter(Boolean).map(t=>t.replace(/^#/,''));
-  const ps=pref.replace(/[都道府県]/,'');if(!rawTags.includes(ps))rawTags.push(ps);
-  const np={
-    id:'p'+Date.now(),
-    photos:selPhotos.filter(Boolean).length?[...selPhotos.filter(Boolean)]:null,
-    orient:selOrientVal,
-    music:selMusicObj?{...selMusicObj}:null,
-    title,pref,cat,
-    year:+document.getElementById('pYr').value,
-    month:+document.getElementById('pMo').value,
-    time:document.getElementById('pTm').value,
-    crowd:document.getElementById('pCr').value,
-    rating:+document.getElementById('pRt').value,
-    desc,tags:rawTags,
-    uid:cu.uid,uName:cu.name,uAv:cu.av||null,
-    badges:{local:document.getElementById('bLo').checked,hidden:document.getElementById('bHi').checked,photo:document.getElementById('bPh').checked},
-    likes:0,likedBy:[],savedBy:[],comments:[],
-    clr:clrs[Math.floor(Math.random()*clrs.length)],
-    createdAt:Date.now(),lat:rLat(pref),lng:rLng(pref)
+  // どのIDが無いか即わかるチェック関数
+  const el = (id) => {
+    const x = document.getElementById(id);
+    if(!x){
+      console.error('❌ missing element id =', id);
+      toast(`❌ 画面部品が見つからない: ${id}`);
+      throw new Error('missing element: ' + id);
+    }
+    return x;
   };
+  const val = (id) => el(id).value;
+
+  const title = val('pTitle').trim();
+  const pref  = val('pPref').trim();
+
+  // pCat が複数選択に変わってる可能性があるので両対応
+  let catEl = document.getElementById('pCat') || document.getElementById('pCats');
+  if(!catEl){
+    console.error('❌ missing pCat / pCats');
+    toast('❌ カテゴリのIDが見つからない（pCat / pCats）');
+    return;
+  }
+
+  const cat = (catEl.multiple)
+    ? Array.from(catEl.selectedOptions).map(o=>o.value).filter(Boolean)
+    : catEl.value;
+
+  const desc = val('pDsc').trim();
+
+  const catOk = Array.isArray(cat) ? cat.length>0 : !!cat;
+  if(!title || !pref || !catOk || !desc){
+    return toast('⚠️ 必須項目を入力してください');
+  }
+
+  const rawTags = val('pTgs').trim()
+    .split(/[\s　,]+/)
+    .filter(Boolean)
+    .map(t=>t.replace(/^#/,''));
+
+  const ps = pref.replace(/[都道府県]/,'');
+  if(ps && !rawTags.includes(ps)) rawTags.push(ps);
+
+  const np = {
+    id: 'p'+Date.now(),
+    photos: (selPhotos||[]).filter(Boolean).length ? [...(selPhotos||[]).filter(Boolean)] : null,
+    orient: selOrientVal || 'portrait',
+    music: selMusicObj ? {...selMusicObj} : null,
+
+    title,
+    pref,
+    cat,
+
+    year:  +val('pYr'),
+    month: +val('pMo'),
+    time:  val('pTm'),
+    crowd: val('pCr'),
+    rating:+val('pRt'),
+
+    desc,
+    tags: rawTags,
+
+    uid: cu.uid,
+    uName: cu.name,
+    uAv: cu.av || null,
+
+    badges:{
+      local: el('bLo').checked,
+      hidden: el('bHi').checked,
+      photo: el('bPh').checked
+    },
+
+    likes:0, likedBy:[], savedBy:[], comments:[],
+    clr: clrs[Math.floor(Math.random()*clrs.length)],
+    createdAt: Date.now(),
+    lat: rLat(pref),
+    lng: rLng(pref)
+  };
+
   window.db.collection("posts").add(np).then(()=>{
 
-  // reset
-  ['pTitle','pPref','pDsc','pTgs'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('pCat').value='';
-  ['bLo','bHi','bPh'].forEach(id=>document.getElementById(id).checked=false);
+    ['pTitle','pPref','pDsc','pTgs'].forEach(id=>el(id).value='');
 
-  selPhotos=[];
-  selMusicObj=null;
+    if(catEl.multiple){
+      Array.from(catEl.options).forEach(o=>o.selected=false);
+    }else{
+      catEl.value='';
+    }
 
-  document.getElementById('mpTrack').textContent='曲を選んで投稿に雰囲気を';
-  document.getElementById('mpClear').style.display='none';
+    ['bLo','bHi','bPh'].forEach(id=>el(id).checked=false);
 
-  initPhotoSlots();
+    selPhotos=[];
+    selMusicObj=null;
 
-  closeOv('postOv');
-  toast('📍 投稿しました！🎉');
+    const mpTrack=document.getElementById('mpTrack');
+    const mpClear=document.getElementById('mpClear');
+    if(mpTrack) mpTrack.textContent='曲を選んで投稿に雰囲気を';
+    if(mpClear) mpClear.style.display='none';
 
-}).catch((e)=>{
-  console.error(e);
-  toast('投稿に失敗しました');
-});
+    initPhotoSlots();
+    closeOv('postOv');
+    toast('📍 投稿しました！🎉');
+
+  }).catch((e)=>{
+    console.error('Firestore add error:', e);
+    toast('投稿に失敗しました（権限/通信/ルール確認）');
+  });
 }
-
 /* ══ SAVED ══ */
 function renderSaved(){
   const list=posts.filter(p=>cu&&(p.savedBy||[]).includes(cu.uid));
@@ -1558,6 +1616,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
