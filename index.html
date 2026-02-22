@@ -825,24 +825,102 @@ function init(){
 
 /* ══ AUTH ══ */
 function authSeg(t,el){
-  document.querySelectorAll('.auth-seg').forEach(x=>x.classList.remove('on'));el.classList.add('on');
-  document.getElementById('loginF').style.display=t==='login'?'block':'none';
-  document.getElementById('regF').style.display=t==='reg'?'block':'none';
-  document.getElementById('ae').style.display='none';
+  document.querySelectorAll('.auth-seg').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('loginF').style.display = t==='login' ? 'block' : 'none';
+  document.getElementById('regF').style.display   = t==='reg'   ? 'block' : 'none';
+  document.getElementById('ae').style.display = 'none';
 }
-function authErr(m){const e=document.getElementById('ae');e.textContent=m;e.style.display='block';}
+
+function authErr(m){
+  const e=document.getElementById('ae');
+  e.textContent=m;
+  e.style.display='block';
+}
+
+/* 🔐 ID + パスワード ログイン */
 function doLogin(){
-   const id=document.getElementById('lId').value.trim();
+  const id=document.getElementById('lId').value.trim();
   const pw=document.getElementById('lPw').value;
 
   if(!id||!pw) return authErr('入力してください');
 
-  // IDからユーザーを探す
+  // IDからユーザー検索
   const u=Object.values(users).find(x=>x.uid===id);
 
   if(!u || u.pass!==pw){
     return authErr('IDまたはパスワードが違います');
   }
+
+  // メールを逆引き
+  const em=Object.keys(users).find(k=>users[k]===u);
+
+  cu={email:em,...u};
+  sv('sess',em);
+
+  launch();
+}
+
+/* 🆕 新規登録 */
+function doReg(){
+  const nm=document.getElementById('rNm').value.trim();
+  const uid=document.getElementById('rId').value.trim();
+  const em=document.getElementById('rEm').value.trim();
+  const pw=document.getElementById('rPw').value;
+
+  if(!nm||!uid||!em||!pw){
+    return authErr('すべて入力してください');
+  }
+
+  if(pw.length<8){
+    return authErr('パスワードは8文字以上');
+  }
+
+  // メール重複チェック
+  if(users[em]){
+    return authErr('このメールはすでに登録されています');
+  }
+
+  // ID重複チェック
+  if(Object.values(users).some(u=>u.uid===uid)){
+    return authErr('このIDはすでに使われています');
+  }
+
+  users[em]={
+    name:nm,
+    uid,
+    pass:pw,
+    av:null,
+    following:[],
+    createdAt:Date.now()
+  };
+
+  sv('users',users);
+
+  cu={email:em,...users[em]};
+  sv('sess',em);
+
+  launch();
+}
+
+/* 🚪 ログアウト */
+function doLogout(){
+  sv('sess',null);
+  cu=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('authWrap').style.display='flex';
+}
+
+/* 🚀 ログイン後の起動 */
+function launch(){
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('app').style.display='flex';
+
+  if(typeof updTopAv === "function") updTopAv();
+  if(typeof setFeedMode === "function") setFeedMode('vert');
+  if(typeof renderVert === "function") renderVert();
+  if(typeof renderMypage === "function") renderMypage();
+}
 
   // メールを取得
   const em=Object.keys(users).find(k=>users[k]===u);
@@ -1457,6 +1535,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
