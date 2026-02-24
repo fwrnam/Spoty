@@ -1155,15 +1155,23 @@ function toggleFollow(uid){
 }
 /* ══ DETAIL SHEET ══ */
 function openDetail(id){
-  const p=posts.find(x=>x.id===id);if(!p)return;
-  const liked=cu&&(p.likedBy||[]).includes(cu.uid);
-  const saved=cu&&(p.savedBy||[]).includes(cu.uid);
-  const fol=isF(p.uid);
-  const isMe=cu&&p.uid===cu.uid;
-  const photos=p.photos||[];
-  const stars='⭐'.repeat(Math.min(+p.rating||5,5));
-  const tags=(p.tags||[]).map(t=>`<span class="dtag">#${t}</span>`).join('');
-  const avHtml=p.uAv?`<img src="${p.uAv}">`:(p.uName||'?').charAt(0).toUpperCase();
+  const pid = String(id).trim();
+  const p = posts.find(x => String(x.id).trim() === pid);
+
+  if(!p){
+    console.error('❌ openDetail: 投稿が見つからない', { id, pid, postsLen: posts.length, sample: posts[0] });
+    toast('投稿が見つかりません');
+    return;
+  }
+
+  const liked = cu && (p.likedBy || []).includes(cu.uid);
+  const saved = cu && (p.savedBy || []).includes(cu.uid);
+  const fol = isF(p.uid);
+  const isMe = cu && p.uid === cu.uid;
+  const photos = Array.isArray(p.photos) ? p.photos : []; // ← null対策（超重要）
+  const stars = '⭐'.repeat(Math.min(+p.rating || 5, 5));
+  const tags = (p.tags || []).map(t => `<span class="dtag">#${t}</span>`).join('');
+  const avHtml = p.uAv ? <img src="${p.uAv}"> : (p.uName || '?').charAt(0).toUpperCase();
 
   // Photo viewer
   const photoH=photos.length
@@ -1651,6 +1659,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
