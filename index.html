@@ -1171,7 +1171,9 @@ function openDetail(id){
   const photos = Array.isArray(p.photos) ? p.photos : []; // ← null対策（超重要）
   const stars = '⭐'.repeat(Math.min(+p.rating || 5, 5));
   const tags = (p.tags || []).map(t => `<span class="dtag">#${t}</span>`).join('');
-  const avHtml = p.uAv ? <img src="${p.uAv}"> : (p.uName || '?').charAt(0).toUpperCase();
+  const avHtml = p.uAv
+  ? `<img src="${p.uAv}">`
+  : (p.uName || '?').charAt(0).toUpperCase();
 
   // Photo viewer
   const photoH=photos.length
@@ -1659,6 +1661,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
