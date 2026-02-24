@@ -1155,6 +1155,8 @@ function toggleFollow(uid){
 }
 /* ══ DETAIL SHEET ══ */
 function openDetail(id){
+  console.log("✅ openDetail clicked:", id);
+  // ここから下は今の処理
   const pid = String(id).trim();
   const p = posts.find(x => String(x.id).trim() === pid);
 
@@ -1661,6 +1663,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
