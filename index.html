@@ -777,7 +777,7 @@ window.analytics = firebase.analytics();
     </div>
   </div>
 </div>
-<input type="file" id="picInput" accept="image/*" style="display:none;" onchange="handlePicFile(event)">
+<input type="file" id="picInput" accept="image/*" multiple style="display:none;" onchange="handlePicFile(event)">
 
 <!-- ════ MUSIC SHEET ════ -->
 <div class="ov" id="musicOv">
@@ -1311,40 +1311,55 @@ function triggerPicSlot(idx){
 }
 
 async function handlePicFile(e){
-  const f = e.target.files[0];
-  if(!f) return;
+  const files = Array.from(e.target.files || []);
+  if(!files.length) return;
 
-  try{
-    const img = new Image();
-    img.src = URL.createObjectURL(f);
-    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+  // 今の空き枠から順に入れる
+  let idx = picSlotIdx;
 
-    const MAX_W = 1080;
-    const scale = Math.min(1, MAX_W / img.width);
-    const w = Math.round(img.width * scale);
-    const h = Math.round(img.height * scale);
+  for(const f of files){
+    if(!f.type.startsWith('image/')) continue;
 
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, w, h);
+    // 8枚制限
+    if(selPhotos.filter(Boolean).length >= 8){
+      toast('写真は最大8枚です');
+      break;
+    }
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    // 次の空きスロットを探す
+    while(idx < 8 && selPhotos[idx]) idx++;
+    if(idx >= 8) break;
 
-    if(selPhotos.filter(Boolean).length >= 8) return toast('写真は最大8枚です');
-    selPhotos[picSlotIdx] = dataUrl;
+    try{
+      const img = new Image();
+      img.src = URL.createObjectURL(f);
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
 
-    initPhotoSlots();
-    URL.revokeObjectURL(img.src);
-  }catch(err){
-    console.error(err);
-    toast('画像の読み込みに失敗しました');
+      const MAX_W = 1080;
+      const scale = Math.min(1, MAX_W / img.width);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      selPhotos[idx] = dataUrl;
+
+      URL.revokeObjectURL(img.src);
+      idx++;
+    }catch(err){
+      console.error(err);
+      toast('画像の読み込みに失敗しました');
+    }
   }
 
+  initPhotoSlots();
   e.target.value = '';
 }
-
 function rmPhoto(idx,e){
   if(e) e.stopPropagation();
   selPhotos.splice(idx,1);
@@ -1677,6 +1692,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
