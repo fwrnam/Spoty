@@ -134,6 +134,10 @@ button{cursor:pointer;font-family:inherit;}
   display:flex;overflow-x:scroll;scroll-snap-type:x mandatory;
   scrollbar-width:none;
 }
+  .vpc-wrap{ z-index:0; }
+.vpost-grad{ z-index:1; }
+.vpost-actions{ z-index:20; pointer-events:auto; }
+.vpost-info{ z-index:20; pointer-events:auto; }
 .vpc-wrap::-webkit-scrollbar{display:none;}
 .vpc-slide{
   scroll-snap-align:start;
@@ -1673,6 +1677,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
