@@ -11,6 +11,7 @@ Spoty · HTML
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style>
 :root{
   --bg:#060608;--s1:#0f0f14;--s2:#18181f;--s3:#22222c;
@@ -579,6 +580,7 @@ button{cursor:pointer;font-family:inherit;}
 
   firebase.initializeApp(firebaseConfig);
   window.db = firebase.firestore();
+  window.st = firebase.storage();
   // ★Analytics 初期化（追加）
 window.analytics = firebase.analytics();
 </script>
@@ -1448,9 +1450,28 @@ function submitPost(){
   const ps = pref.replace(/[都道府県]/,'');
   if(ps && !rawTags.includes(ps)) rawTags.push(ps);
 
+  // 投稿IDを先に作る
+const pid = 'p' + Date.now();
+
+// 選択された写真
+const picked = (selPhotos || []).filter(Boolean);
+
+let photoURLs = null;
+
+// 写真がある場合Storageにアップ
+if(picked.length){
+  toast('📤 写真アップロード中...');
+  photoURLs = [];
+
+  for(let i=0;i<picked.length;i++){
+    const url = await uploadPhotoDataURL(picked[i], pid, i);
+    photoURLs.push(url);
+  }
+}
+
   const np = {
     id: 'p'+Date.now(),
-    photos: (selPhotos||[]).filter(Boolean).length ? [...(selPhotos||[]).filter(Boolean)] : null,
+    photos: photoURLs,
     orient: selOrientVal || 'portrait',
     music: selMusicObj ? {...selMusicObj} : null,
 
@@ -1485,7 +1506,7 @@ function submitPost(){
     lng: rLng(pref)
   };
 
-  window.db.collection("posts").add(np).then(()=>{
+  window.db.collection("posts").doc(pid).set(np).then(()=>{
 
     // reset
     ['pTitle','pPref','pDsc','pTgs'].forEach(id=>el(id).value='');
@@ -1642,6 +1663,32 @@ function seedPosts(){return[
 ];}
 
 /* ══ UTILS ══ */
+  /* ══ PHOTO UPLOAD（Storage用） ══ */
+
+// base64（画像）をBlobに変換
+function dataURLtoBlob(dataURL){
+  const arr = dataURL.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8 = new Uint8Array(n);
+  while(n--) u8[n] = bstr.charCodeAt(n);
+  return new Blob([u8], {type:mime});
+}
+
+// Firebase Storageにアップ
+async function uploadPhotoDataURL(dataURL, pid, idx){
+  const blob = dataURLtoBlob(dataURL);
+
+  // 保存場所（投稿ごと）
+  const path = `posts/${pid}/${idx}_${Date.now()}.jpg`;
+
+  const ref = window.st.ref().child(path);
+
+  await ref.put(blob, { contentType: 'image/jpeg' });
+
+  return await ref.getDownloadURL();
+}
 function rLat(p){const m={'東京都':35.68,'神奈川県':35.45,'熊本県':32.8,'京都府':35.0,'大阪府':34.7};return(m[p]||35.0)+Math.random()*0.3-0.15;}
 function rLng(p){const m={'東京都':139.7,'神奈川県':139.6,'熊本県':131.0,'京都府':135.7,'大阪府':135.5};return(m[p]||136.0)+Math.random()*0.4-0.2;}
 function ce(c){return c?.includes('空')?'🟢':c?.includes('混')?'🔴':'🟡';}
@@ -1692,6 +1739,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
