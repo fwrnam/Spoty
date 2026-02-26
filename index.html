@@ -561,7 +561,7 @@ button{cursor:pointer;font-family:inherit;}
   <!-- Firebase (compatだけ使う：window.db を使うため) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyAr674Ds7ns-iKjTx4UPaN09hlo_LNu2rI",
@@ -575,6 +575,8 @@ button{cursor:pointer;font-family:inherit;}
 
   firebase.initializeApp(firebaseConfig);
   window.db = firebase.firestore();
+  // ★Analytics 初期化（追加）
+window.analytics = firebase.analytics();
 </script>
 </head>
 <body>
@@ -876,6 +878,7 @@ function doLogin(){
   if(!em||!pw)return authErr('入力してください');
   const u=users[em];if(!u||u.pass!==pw)return authErr('メールアドレスまたはパスワードが違います');
   cu={email:em,...u};sv('sess',em);launch();
+  if(window.analytics) window.analytics.logEvent('login_success');
 }
 function doReg(){
   const nm=document.getElementById('rNm').value.trim(),uid=document.getElementById('rId').value.trim();
@@ -886,6 +889,7 @@ function doReg(){
   if(Object.values(users).some(u=>u.uid===uid))return authErr('このIDはすでに使われています');
   users[em]={name:nm,uid,pass:pw,av:null,following:[],createdAt:Date.now()};
   sv('users',users);cu={email:em,...users[em]};sv('sess',em);launch();
+  if(window.analytics) window.analytics.logEvent('sign_up_success');
 }
 function doLogout(){sv('sess',null);cu=null;document.getElementById('app').style.display='none';document.getElementById('authWrap').style.display='flex';}
 function launch(){
@@ -1660,9 +1664,13 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
   // Spoty起動
   init();
   setFeedMode('vert');
+   // ★アプリ起動（誰かが開いた）
+  if(window.analytics) window.analytics.logEvent('app_open');
+
 </script>
 </body>
 </html>
+
 
 
 
