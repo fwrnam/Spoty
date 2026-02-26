@@ -1595,8 +1595,11 @@ function renderMapPins(){
   list.forEach(p=>{
     const isSv=svIds.includes(p.id);
     const icon=L.divIcon({className:'',html:`<div style="background:${isSv?'#ffd060':'#a78bff'};color:#fff;padding:5px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.3);">${isSv?'🔖 ':''}${p.title}</div>`,iconAnchor:[0,0]});
-    const mk=L.marker([p.lat,p.lng],{icon}).addTo(mapInst).bindPopup(`<div><b>${p.title}</b><br><span style="font-size:0.75rem;color:#aaa;">${p.pref} · ${p.cat}</span><br><span style="font-size:0.75rem;">⭐${p.rating}/5 · ❤️${p.likes}</span><br><br><button onclick="closeOv('mapModal');openDetail('${p.id}')" style="background:linear-gradient(135deg,#a78bff,#ff5f8f);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:0.73rem;font-weight:700;cursor:pointer;width:100%;">詳細を見る →</button></div>`);
-    mapMkrs.push(mk);
+    const mk=L.marker([p.lat,p.lng],{icon}).addTo(mapInst).bindPopup(`<div><b>${p.title}</b><br>
+<span style="font-size:0.75rem;color:#aaa;">${p.pref} · ${p.cat}</span><br>
+<span style="font-size:0.75rem;">⭐${p.rating}/5 · ❤️${p.likes}</span><br><br>
+<button onclick="openDetail('${p.id}')" style="background:linear-gradient(135deg,#a78bff,#ff5f8f);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:0.73rem;font-weight:700;cursor:pointer;width:100%;">詳細を見る →</button>
+</div>`);
   });
 }
 
@@ -1670,6 +1673,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
