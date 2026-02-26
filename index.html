@@ -11,7 +11,7 @@ Spoty · HTML
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
 <style>
 :root{
   --bg:#060608;--s1:#0f0f14;--s2:#18181f;--s3:#22222c;
@@ -566,6 +566,7 @@ button{cursor:pointer;font-family:inherit;}
   <!-- Firebase (compatだけ使う：window.db を使うため) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
 <script>
   const firebaseConfig = {
@@ -1407,7 +1408,7 @@ function selectMusic(id){
 function clearMusic(e){if(e)e.stopPropagation();selMusicObj=null;document.getElementById('mpTrack').textContent='曲を選んで投稿に雰囲気を';document.getElementById('mpClear').style.display='none';}
 function hashColor(s){let h=0;for(const c of s)h=(h<<5)-h+c.charCodeAt(0);return Math.abs(h)%360;}
 
-function submitPost(){
+async function submitPost(){
   if(!cu) return toast('ログインが必要です');
 
   // どのIDが無いか即わかるチェック関数
@@ -1739,6 +1740,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
