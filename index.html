@@ -1,5 +1,4 @@
 
-
 Spoty · HTML
 コピー
 
@@ -12,7 +11,6 @@ Spoty · HTML
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <style>
 :root{
   --bg:#060608;--s1:#0f0f14;--s2:#18181f;--s3:#22222c;
@@ -136,10 +134,6 @@ button{cursor:pointer;font-family:inherit;}
   display:flex;overflow-x:scroll;scroll-snap-type:x mandatory;
   scrollbar-width:none;
 }
-  .vpc-wrap{ z-index:0; }
-.vpost-grad{ z-index:1; }
-.vpost-actions{ z-index:20; pointer-events:auto; }
-.vpost-info{ z-index:20; pointer-events:auto; }
 .vpc-wrap::-webkit-scrollbar{display:none;}
 .vpc-slide{
   scroll-snap-align:start;
@@ -567,8 +561,7 @@ button{cursor:pointer;font-family:inherit;}
   <!-- Firebase (compatだけ使う：window.db を使うため) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
+
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyAr674Ds7ns-iKjTx4UPaN09hlo_LNu2rI",
@@ -582,9 +575,6 @@ button{cursor:pointer;font-family:inherit;}
 
   firebase.initializeApp(firebaseConfig);
   window.db = firebase.firestore();
-  window.st = firebase.storage();
-  // ★Analytics 初期化（追加）
-window.analytics = firebase.analytics();
 </script>
 </head>
 <body>
@@ -781,7 +771,7 @@ window.analytics = firebase.analytics();
     </div>
   </div>
 </div>
-<input type="file" id="picInput" accept="image/*" multiple style="display:none;" onchange="handlePicFile(event)">
+<input type="file" id="picInput" accept="image/*" style="display:none;" onchange="handlePicFile(event)">
 
 <!-- ════ MUSIC SHEET ════ -->
 <div class="ov" id="musicOv">
@@ -886,7 +876,6 @@ function doLogin(){
   if(!em||!pw)return authErr('入力してください');
   const u=users[em];if(!u||u.pass!==pw)return authErr('メールアドレスまたはパスワードが違います');
   cu={email:em,...u};sv('sess',em);launch();
-  if(window.analytics) window.analytics.logEvent('login_success');
 }
 function doReg(){
   const nm=document.getElementById('rNm').value.trim(),uid=document.getElementById('rId').value.trim();
@@ -897,7 +886,6 @@ function doReg(){
   if(Object.values(users).some(u=>u.uid===uid))return authErr('このIDはすでに使われています');
   users[em]={name:nm,uid,pass:pw,av:null,following:[],createdAt:Date.now()};
   sv('users',users);cu={email:em,...users[em]};sv('sess',em);launch();
-  if(window.analytics) window.analytics.logEvent('sign_up_success');
 }
 function doLogout(){sv('sess',null);cu=null;document.getElementById('app').style.display='none';document.getElementById('authWrap').style.display='flex';}
 function launch(){
@@ -1315,55 +1303,40 @@ function triggerPicSlot(idx){
 }
 
 async function handlePicFile(e){
-  const files = Array.from(e.target.files || []);
-  if(!files.length) return;
+  const f = e.target.files[0];
+  if(!f) return;
 
-  // 今の空き枠から順に入れる
-  let idx = picSlotIdx;
+  try{
+    const img = new Image();
+    img.src = URL.createObjectURL(f);
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
 
-  for(const f of files){
-    if(!f.type.startsWith('image/')) continue;
+    const MAX_W = 1080;
+    const scale = Math.min(1, MAX_W / img.width);
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
 
-    // 8枚制限
-    if(selPhotos.filter(Boolean).length >= 8){
-      toast('写真は最大8枚です');
-      break;
-    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
 
-    // 次の空きスロットを探す
-    while(idx < 8 && selPhotos[idx]) idx++;
-    if(idx >= 8) break;
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
 
-    try{
-      const img = new Image();
-      img.src = URL.createObjectURL(f);
-      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+    if(selPhotos.filter(Boolean).length >= 8) return toast('写真は最大8枚です');
+    selPhotos[picSlotIdx] = dataUrl;
 
-      const MAX_W = 1080;
-      const scale = Math.min(1, MAX_W / img.width);
-      const w = Math.round(img.width * scale);
-      const h = Math.round(img.height * scale);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-      selPhotos[idx] = dataUrl;
-
-      URL.revokeObjectURL(img.src);
-      idx++;
-    }catch(err){
-      console.error(err);
-      toast('画像の読み込みに失敗しました');
-    }
+    initPhotoSlots();
+    URL.revokeObjectURL(img.src);
+  }catch(err){
+    console.error(err);
+    toast('画像の読み込みに失敗しました');
   }
 
-  initPhotoSlots();
   e.target.value = '';
 }
+
 function rmPhoto(idx,e){
   if(e) e.stopPropagation();
   selPhotos.splice(idx,1);
@@ -1409,7 +1382,7 @@ function selectMusic(id){
 function clearMusic(e){if(e)e.stopPropagation();selMusicObj=null;document.getElementById('mpTrack').textContent='曲を選んで投稿に雰囲気を';document.getElementById('mpClear').style.display='none';}
 function hashColor(s){let h=0;for(const c of s)h=(h<<5)-h+c.charCodeAt(0);return Math.abs(h)%360;}
 
-async function submitPost(){
+function submitPost(){
   if(!cu) return toast('ログインが必要です');
 
   // どのIDが無いか即わかるチェック関数
@@ -1452,28 +1425,9 @@ async function submitPost(){
   const ps = pref.replace(/[都道府県]/,'');
   if(ps && !rawTags.includes(ps)) rawTags.push(ps);
 
-  // 投稿IDを先に作る
-const pid = 'p' + Date.now();
-
-// 選択された写真
-const picked = (selPhotos || []).filter(Boolean);
-
-let photoURLs = null;
-
-// 写真がある場合Storageにアップ
-if(picked.length){
-  toast('📤 写真アップロード中...');
-  photoURLs = [];
-
-  for(let i=0;i<picked.length;i++){
-    const url = await uploadPhotoDataURL(picked[i], pid, i);
-    photoURLs.push(url);
-  }
-}
-
   const np = {
     id: 'p'+Date.now(),
-    photos: photoURLs,
+    photos: (selPhotos||[]).filter(Boolean).length ? [...(selPhotos||[]).filter(Boolean)] : null,
     orient: selOrientVal || 'portrait',
     music: selMusicObj ? {...selMusicObj} : null,
 
@@ -1508,7 +1462,7 @@ if(picked.length){
     lng: rLng(pref)
   };
 
-  window.db.collection("posts").doc(pid).set(np).then(()=>{
+  window.db.collection("posts").add(np).then(()=>{
 
     // reset
     ['pTitle','pPref','pDsc','pTgs'].forEach(id=>el(id).value='');
@@ -1637,11 +1591,8 @@ function renderMapPins(){
   list.forEach(p=>{
     const isSv=svIds.includes(p.id);
     const icon=L.divIcon({className:'',html:`<div style="background:${isSv?'#ffd060':'#a78bff'};color:#fff;padding:5px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.3);">${isSv?'🔖 ':''}${p.title}</div>`,iconAnchor:[0,0]});
-    const mk=L.marker([p.lat,p.lng],{icon}).addTo(mapInst).bindPopup(`<div><b>${p.title}</b><br>
-<span style="font-size:0.75rem;color:#aaa;">${p.pref} · ${p.cat}</span><br>
-<span style="font-size:0.75rem;">⭐${p.rating}/5 · ❤️${p.likes}</span><br><br>
-<button onclick="openDetail('${p.id}')" style="background:linear-gradient(135deg,#a78bff,#ff5f8f);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:0.73rem;font-weight:700;cursor:pointer;width:100%;">詳細を見る →</button>
-</div>`);
+    const mk=L.marker([p.lat,p.lng],{icon}).addTo(mapInst).bindPopup(`<div><b>${p.title}</b><br><span style="font-size:0.75rem;color:#aaa;">${p.pref} · ${p.cat}</span><br><span style="font-size:0.75rem;">⭐${p.rating}/5 · ❤️${p.likes}</span><br><br><button onclick="closeOv('mapModal');openDetail('${p.id}')" style="background:linear-gradient(135deg,#a78bff,#ff5f8f);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:0.73rem;font-weight:700;cursor:pointer;width:100%;">詳細を見る →</button></div>`);
+    mapMkrs.push(mk);
   });
 }
 
@@ -1665,32 +1616,6 @@ function seedPosts(){return[
 ];}
 
 /* ══ UTILS ══ */
-  /* ══ PHOTO UPLOAD（Storage用） ══ */
-
-// base64（画像）をBlobに変換
-function dataURLtoBlob(dataURL){
-  const arr = dataURL.split(',');
-  const mime = arr[0].match(/:(.*?);/)[1];
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8 = new Uint8Array(n);
-  while(n--) u8[n] = bstr.charCodeAt(n);
-  return new Blob([u8], {type:mime});
-}
-
-// Firebase Storageにアップ
-async function uploadPhotoDataURL(dataURL, pid, idx){
-  const blob = dataURLtoBlob(dataURL);
-
-  // 保存場所（投稿ごと）
-  const path = `posts/${pid}/${idx}_${Date.now()}.jpg`;
-
-  const ref = window.st.ref().child(path);
-
-  await ref.put(blob, { contentType: 'image/jpeg' });
-
-  return await ref.getDownloadURL();
-}
 function rLat(p){const m={'東京都':35.68,'神奈川県':35.45,'熊本県':32.8,'京都府':35.0,'大阪府':34.7};return(m[p]||35.0)+Math.random()*0.3-0.15;}
 function rLng(p){const m={'東京都':139.7,'神奈川県':139.6,'熊本県':131.0,'京都府':135.7,'大阪府':135.5};return(m[p]||136.0)+Math.random()*0.4-0.2;}
 function ce(c){return c?.includes('空')?'🟢':c?.includes('混')?'🔴':'🟡';}
@@ -1735,20 +1660,9 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
   // Spoty起動
   init();
   setFeedMode('vert');
-   // ★アプリ起動（誰かが開いた）
-  if(window.analytics) window.analytics.logEvent('app_open');
-
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
 
 
 
