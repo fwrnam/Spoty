@@ -1363,11 +1363,7 @@ async function handlePicFile(e){
   initPhotoSlots();
   e.target.value = '';
 }
-function rmPhoto(idx,e){
-  if(e) e.stopPropagation();
-  selPhotos.splice(idx,1);
-  initPhotoSlots();
-}
+
 function rmPhoto(idx,e){if(e)e.stopPropagation();selPhotos.splice(idx,1);initPhotoSlots();}
 
 let selOrientVal='portrait';
@@ -1451,8 +1447,9 @@ async function submitPost(){
   const ps = pref.replace(/[都道府県]/,'');
   if(ps && !rawTags.includes(ps)) rawTags.push(ps);
 
-  // 投稿IDを先に作る
-const pid = pid,
+// 投稿IDを先に作る（作成時刻も固定）
+const createdAt = Date.now();
+const pid = 'p' + createdAt;
 
 // 選択された写真
 const picked = (selPhotos || []).filter(Boolean);
@@ -1470,69 +1467,49 @@ if(picked.length){
   }
 }
 
-  const np = {
-    id: pid,
-    photos: photoURLs,
-    orient: selOrientVal || 'portrait',
-    music: selMusicObj ? {...selMusicObj} : null,
+const np = {
+  id: pid,
+  photos: photoURLs,
+  orient: selOrientVal || 'portrait',
+  music: selMusicObj ? {...selMusicObj} : null,
 
-    title,
-    pref,
-    cat,   // 先頭1個（互換）
-    cats,  // ✅ 複数カテゴリ（新仕様）
+  title,
+  pref,
+  cat,
+  cats,
 
-    year:  +val('pYr'),
-    month: +val('pMo'),
-    time:  val('pTm'),
-    crowd: val('pCr'),
-    rating:+val('pRt'),
+  year:  +val('pYr'),
+  month: +val('pMo'),
+  time:  val('pTm'),
+  crowd: val('pCr'),
+  rating:+val('pRt'),
 
-    desc,
-    tags: rawTags,
+  desc,
+  tags: rawTags,
 
-    uid: cu.uid,
-    uName: cu.name,
-    uAv: cu.av || null,
+  uid: cu.uid,
+  uName: cu.name,
+  uAv: cu.av || null,
 
-    badges:{
-      local: el('bLo').checked,
-      hidden: el('bHi').checked,
-      photo: el('bPh').checked
-    },
+  badges:{
+    local: el('bLo').checked,
+    hidden: el('bHi').checked,
+    photo: el('bPh').checked
+  },
 
-    likes:0, likedBy:[], savedBy:[], comments:[],
-    clr: clrs[Math.floor(Math.random()*clrs.length)],
-    createdAt: Date.now(),
-    lat: rLat(pref),
-    lng: rLng(pref)
-  };
+  likes:0, likedBy:[], savedBy:[], comments:[],
+  clr: clrs[Math.floor(Math.random()*clrs.length)],
+  createdAt,
+  lat: rLat(pref),
+  lng: rLng(pref)
+};
 
-  window.db.collection("posts").doc(pid).set(np).then(()=>{
-
-    // reset
-    ['pTitle','pPref','pDsc','pTgs'].forEach(id=>el(id).value='');
-
-    // ✅ カテゴリ（チェック）を全部OFF
-    document.querySelectorAll('.catChk').forEach(x => x.checked = false);
-
-    ['bLo','bHi','bPh'].forEach(id=>el(id).checked=false);
-
-    selPhotos=[];
-    selMusicObj=null;
-
-    const mpTrack=document.getElementById('mpTrack');
-    const mpClear=document.getElementById('mpClear');
-    if(mpTrack) mpTrack.textContent='曲を選んで投稿に雰囲気を';
-    if(mpClear) mpClear.style.display='none';
-
-    initPhotoSlots();
-    closeOv('postOv');
-    toast('📍 投稿しました！🎉');
-
-  }).catch((e)=>{
-    console.error('Firestore add error:', e);
-    toast('投稿に失敗しました（権限/通信/ルール確認）');
-  });
+window.db.collection("posts").doc(pid).set(np).then(()=>{
+  // reset...
+}).catch((e)=>{
+  console.error('Firestore add error:', e);
+  toast('投稿に失敗しました（権限/通信/ルール確認）');
+});
 }
 /* ══ SAVED ══ */
 function renderSaved(){
@@ -1740,6 +1717,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
