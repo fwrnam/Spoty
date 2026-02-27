@@ -1452,7 +1452,7 @@ async function submitPost(){
   if(ps && !rawTags.includes(ps)) rawTags.push(ps);
 
   // 投稿IDを先に作る
-const pid = 'p' + Date.now();
+const pid = pid,
 
 // 選択された写真
 const picked = (selPhotos || []).filter(Boolean);
@@ -1471,7 +1471,7 @@ if(picked.length){
 }
 
   const np = {
-    id: 'p'+Date.now(),
+    id: pid,
     photos: photoURLs,
     orient: selOrientVal || 'portrait',
     music: selMusicObj ? {...selMusicObj} : null,
@@ -1740,6 +1740,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 </script>
 </body>
 </html>
+
 
 
 
